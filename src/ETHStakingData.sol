@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "../lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol";
+
 contract ETHStakingData {
     mapping(address => uint256) public stakers;
     mapping(address => uint256) public unstakers;
