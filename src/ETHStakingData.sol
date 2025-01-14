@@ -3,23 +3,8 @@ pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol";
 
-event ETHStaked (
-    address by,
-    uint256 amount
-);
-
-event ETHRestaked (
-    address by,
-    uint256 amount
-);
-
-event ETHUnstaked (
-    address by,
-    uint256 amount
-);
-
 contract ETHStakingData {
-    uint256 totalStaked;
+    uint256 public totalStaked;
     mapping(address => uint256) public stakers;
     mapping(address => uint256) public unstakers;
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -28,13 +13,15 @@ contract ETHStakingData {
         setImplementation(_implementation);
     }
 
-    fallback() external {
-        
+    fallback() external payable {
         (bool success, ) = getImplementation().delegatecall(msg.data);
-
         if (!success) {
             revert();
         }
+    }
+
+    receive() external payable {
+        // Custom logic for receiving Ether can be added here
     }
 
     function getImplementation() internal view returns (address) {

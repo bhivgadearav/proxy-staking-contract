@@ -16,8 +16,18 @@ event ETHUnstaked (
     uint256 amount
 );
 
+event ETHWithdrawn (
+    address by,
+    uint256 amount
+);
+
+// struct UnstakeDetails {
+//     uint256 amount,
+//     uint256 timestamp
+// }
+
 contract ETHStakingLogic {
-    uint256 totalStaked;
+    uint256 public totalStaked;
     mapping(address => uint256) public stakers;
     mapping(address => uint256) public unstakers;
 
@@ -37,17 +47,21 @@ contract ETHStakingLogic {
 
     function unstake() public {
         require(stakers[msg.sender] > 0, "You haven't staked any ETH.");
-        if (unstakers[msg.sender] > 0) {
-            require(unstakers[msg.sender] < block.timestamp, "You need to wait longer before you can unstake");
+        if (unstakers[msg.sender] == 0) {
+            unstakers[msg.sender] = block.timestamp + 21 * 1 days;
+            emit ETHUnstaked(msg.sender, stakers[msg.sender]);
+        } else {
+            require(block.timestamp >= unstakers[msg.sender], "You need to wait longer before you can unstake");
             uint256 amount = stakers[msg.sender];
             stakers[msg.sender] = 0;
-            payable(msg.sender).transfer(amount);
             unstakers[msg.sender] = 0;
+            totalStaked -= amount;
+            payable(msg.sender).transfer(amount);
+            emit ETHWithdrawn(msg.sender, amount);
         }
-        else {
-            unstakers[msg.sender] = block.timestamp + 21 days;
-            totalStaked -= stakers[msg.sender];
-            emit ETHUnstaked(msg.sender, stakers[msg.sender]);
-        }
+    }
+
+    receive() external payable {
+        // Custom logic for receiving Ether can be added here
     }
 }
