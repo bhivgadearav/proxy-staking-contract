@@ -14,7 +14,7 @@ contract ETHStakingData {
     }
 
     fallback() external payable {
-        (bool success, ) = getImplementation().delegatecall(msg.data);
+        (bool success, bytes memory returnData) = getImplementation().delegatecall(msg.data);
         if (!success) {
             revert();
         }
