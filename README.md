@@ -1,66 +1,51 @@
-## Foundry
+# Proxy Staking Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This project contains three upgradable staking contracts:
 
-Foundry consists of:
+1. **Native ETH Staking**: Allows users to stake their native ETH.
+2. **ERC20 Token Staking**: Allows users to stake ERC20 tokens.
+3. **NFT Staking**: Allows users to stake NFTs.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Features
 
-## Documentation
+- **Upgradable Contracts**: All staking contracts are upgradable, ensuring flexibility and future enhancements.
+- **Secure Staking**: Implements secure staking mechanisms for ETH, ERC20 tokens, and NFTs.
+- **Foundry Framework**: Utilizes the Foundry framework for development, testing, and deployment.
 
-https://book.getfoundry.sh/
+## Prerequisites
 
-## Usage
+- [Foundry](https://github.com/gakonst/foundry) installed
+- Node.js and npm installed
 
-### Build
+## Installation
 
-```shell
-$ forge build
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/bhivgadearav/proxy-staking-contract.git
+    cd proxy-staking-contract
+    ```
+
+2. Install dependencies:
+    ```sh
+    npm install
+    ```
+
+3. Build the project:
+    ```sh
+    forge build
+    ```
+
+### Running Tests
+
+Run the tests to ensure everything is working correctly:
+```sh
+forge test
 ```
 
-### Test
+## Contributing
 
-```shell
-$ forge test
-```
+Contributions are welcome! Please open an issue or submit a pull request.
 
-### Format
+## License
 
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+This project is licensed under *The Unlicense*.
