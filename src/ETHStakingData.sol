@@ -3,6 +3,21 @@ pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol";
 
+event ETHStaked (
+    address by,
+    uint256 amount
+);
+
+event ETHRestaked (
+    address by,
+    uint256 amount
+);
+
+event ETHUnstaked (
+    address by,
+    uint256 amount
+);
+
 contract ETHStakingData {
     uint256 totalStaked;
     mapping(address => uint256) public stakers;
