@@ -2,12 +2,14 @@
 pragma solidity ^0.8.13;
 
 contract ETHStakingLogic {
+    uint256 totalStaked;
     mapping(address => uint256) public stakers;
     mapping(address => uint256) public unstakers;
 
     function stake() payable public {
         require(msg.value > 0, "Amount must be greater than 0.");
         stakers[msg.sender] += msg.value;
+        totalStaked += msg.value;
     }
 
     function unstake() public {
@@ -20,6 +22,7 @@ contract ETHStakingLogic {
         }
         else {
             unstakers[msg.sender] = block.timestamp + 21 days;
+            totalStaked -= stakers[msg.sender];
         }
     }
 }
