@@ -1,4 +1,5 @@
 # Proxy Staking Contracts
+## Warning - The contracts exchange eth, erc20 tokens and staking tokens in a 1:1 ratio. You need to change the contract to do this exchange according to the dollar value or whatever seems right for your use case.
 
 This project contains three upgradable staking contracts:
 
