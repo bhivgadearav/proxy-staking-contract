@@ -8,13 +8,13 @@ interface StakeTokenContract is IERC20 {
     function burn(address from, uint256 amount) external;
 }
 
-event ETHStaked (
-    address by,
+event ERC20TokenStaked (
+    address indexed by,
     uint256 amount
 );
 
-event ETHUnstaked (
-    address by,
+event ERC20TokenUnstaked (
+    address indexed by,
     uint256 amount
 );
 
@@ -36,7 +36,7 @@ contract ERC20StakingLogic {
         else {
             StakeTokenContract(stakeToken).mint(msg.sender, _amount);
         }
-        emit ETHStaked(msg.sender, _amount);
+        emit ERC20TokenStaked(msg.sender, _amount);
     }
 
     function unstake(IERC20 _tokenAddress) public {
@@ -44,7 +44,7 @@ contract ERC20StakingLogic {
         require(StakeTokenContract(stakeToken).allowance(msg.sender, address(this)) >= stakers[msg.sender], "You need to allow contract to spend your stake tokens in order to unstake");
         if (unstakers[msg.sender] == 0) {
             unstakers[msg.sender] = block.timestamp + 21 * 1 days;
-            emit ETHUnstaked(msg.sender, stakers[msg.sender]);
+            emit ERC20TokenUnstaked(msg.sender, stakers[msg.sender]);
         } else {
             require(block.timestamp >= unstakers[msg.sender], "You need to wait longer before you can unstake");
             uint256 amount = stakers[msg.sender];

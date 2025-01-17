@@ -7,14 +7,19 @@ contract ETHStakingData {
     uint256 public totalStaked;
     mapping(address => uint256) public stakers;
     mapping(address => uint256) public unstakers;
+    address stakeToken;
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
     constructor(address _implementation) {
         setImplementation(_implementation);
     }
 
+    function setStakeToken(address _stakeToken) external {
+        stakeToken = _stakeToken;
+    }
+
     fallback() external payable {
-        (bool success, bytes memory returnData) = getImplementation().delegatecall(msg.data);
+        (bool success, ) = getImplementation().delegatecall(msg.data);
         if (!success) {
             revert();
         }

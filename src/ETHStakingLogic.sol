@@ -9,12 +9,12 @@ interface StakeTokenContract is IERC20 {
 }
 
 event ETHStaked (
-    address by,
+    address indexed by,
     uint256 amount
 );
 
 event ETHUnstaked (
-    address by,
+    address indexed by,
     uint256 amount
 );
 

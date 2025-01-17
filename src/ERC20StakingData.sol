@@ -14,7 +14,7 @@ contract ERC20StakingData {
     }
 
     fallback() external payable {
-        (bool success, bytes memory returnData) = getImplementation().delegatecall(msg.data);
+        (bool success, ) = getImplementation().delegatecall(msg.data);
         if (!success) {
             revert();
         }
