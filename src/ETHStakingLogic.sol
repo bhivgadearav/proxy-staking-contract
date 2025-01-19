@@ -18,50 +18,52 @@ event ETHUnstaked (
     uint256 amount
 );
 
+// problems - user is not able to stake again and then unstake after claiming rewards
+// logic is reliant on value redeemers mapping too much, restricting flexiibility
+
+// solution - make a struct to store the staker's data and then use a mapping to store the struct
+// then add tests for claimRewards, getRewards and redeemRewards
+
 contract ETHStakingLogic {
     uint256 public totalStaked;
     mapping(address => uint256) public stakers;
-    mapping(address => uint256) public unstakers;
+    mapping(address => uint256) public redeemers;
     address stakeToken;
 
-    function stake(address _sender, uint256 _value) payable public {
-        require(_value > 0, "Amount must be greater than 0.");
-        if (unstakers[_sender] > 0) {
-            unstakers[_sender] = 0;
-            totalStaked += _value;
-        }
-        else {
-            stakers[_sender] += _value;
-            totalStaked += _value;
-        }
-        if (StakeTokenContract(stakeToken).balanceOf(address(this)) >= _value) {
-            StakeTokenContract(stakeToken).transfer(_sender, _value);
+    function stake() payable public {
+        require(msg.value > 0, "Amount must be greater than 0.");
+        stakers[msg.sender] += msg.value;
+        totalStaked += msg.value;
+        emit ETHStaked(msg.sender, msg.value);
+    }
+
+    function unstake(uint256 _value) public {
+        require(stakers[msg.sender] >= _value, "You haven't staked enough ETH.");
+        stakers[msg.sender] -= _value;
+        payable(msg.sender).transfer(_value);
+        emit ETHUnstaked(msg.sender, stakers[msg.sender]);
+    }
+
+    function redeemRewards() public {
+        require(stakers[msg.sender] > 0, "You haven't staked any ETH.");
+        if (redeemers[msg.sender] == 0) {
+            redeemers[msg.sender] = block.timestamp + 21 * 1 days;
         } 
         else {
-            StakeTokenContract(stakeToken).mint(_sender, _value);
-        }
-        emit ETHStaked(_sender, _value);
-    }
-
-    function unstake() public {
-        require(stakers[msg.sender] > 0, "You haven't staked any ETH.");
-        require(StakeTokenContract(stakeToken).allowance(msg.sender, address(this)) >= stakers[msg.sender], "You need to allow contract to spend your stake tokens in order to unstake");
-        if (unstakers[msg.sender] == 0) {
-            unstakers[msg.sender] = block.timestamp + 21 * 1 days;
-            emit ETHUnstaked(msg.sender, stakers[msg.sender]);
-        } else {
-            require(block.timestamp >= unstakers[msg.sender], "You need to wait longer before you can unstake");
+            require(block.timestamp >= redeemers[msg.sender], "You need to wait longer before you can unstake");
             uint256 amount = stakers[msg.sender];
-            stakers[msg.sender] = 0;
-            unstakers[msg.sender] = 0;
-            totalStaked -= amount;
-            StakeTokenContract(stakeToken).transferFrom(msg.sender, address(this), amount);
-            payable(msg.sender).transfer(amount);
+            if (StakeTokenContract(stakeToken).balanceOf(address(this)) >= amount) {
+                StakeTokenContract(stakeToken).transfer(msg.sender, amount);
+            } 
+            else {
+                StakeTokenContract(stakeToken).mint(msg.sender, amount);
+            }
         }
     }
 
-    receive() external payable {
-        stake(msg.sender, msg.value);
+    function getRewards() public view returns (uint256) {
+        require(redeemers[msg.sender] == 0, "You don't have any rewards to redeem.");
+        return stakers[msg.sender];
     }
 }
 

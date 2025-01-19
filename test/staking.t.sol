@@ -16,7 +16,7 @@ contract ETHStakingTest is Test {
     function setUp() public {
         stakingLogic = new ETHStakingLogic();
         stakingData = new ETHStakingData(address(stakingLogic));
-        stakeToken = new StakeToken(address(stakingData));
+        stakeToken = new StakeToken(address(user), address(stakingData));
         stakingData.setStakeToken(address(stakeToken));
     }
 
@@ -24,7 +24,7 @@ contract ETHStakingTest is Test {
         vm.deal(user, 10 ether);
         vm.startPrank(user);
 
-        (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake(address,uint256)", user, 1 ether));
+        (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
         assertTrue(success);
 
         uint256 stakedAmount = stakingData.stakers(user);
@@ -40,43 +40,15 @@ contract ETHStakingTest is Test {
         (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
         assertTrue(success);
 
-        (success, ) = address(stakingData).call(abi.encodeWithSignature("unstake()"));
-        assertTrue(success);
-
-        uint256 unstakeTimestamp = stakingData.unstakers(user);
-        assertTrue(unstakeTimestamp > 0);
-
-        vm.warp(block.timestamp + 22 days);
-
-        (success, ) = address(stakingData).call(abi.encodeWithSignature("unstake()"));
-        assertTrue(success);
-
         uint256 stakedAmount = stakingData.stakers(user);
+        assertEq(stakedAmount, 1 ether);
+
+        (success, ) = address(stakingData).call(abi.encodeWithSignature("unstake(uint256)", 1 ether));
+        assertTrue(success);
+
+        stakedAmount = stakingData.stakers(user);
         assertEq(stakedAmount, 0);
 
-        vm.stopPrank();
-    }
-
-    function testRestake() public {
-        vm.deal(address(stakingData), 1 ether);
-        vm.deal(user, 20 ether);  
-        vm.startPrank(user);
-        
-        (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
-        assertTrue(success);
-        
-        (success, ) = address(stakingData).call(abi.encodeWithSignature("unstake()"));
-        assertTrue(success);
-        
-        vm.warp(block.timestamp + 22 days);
-        
-        vm.deal(user, 1 ether);
-        (success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
-        assertTrue(success);
-        
-        uint256 stakedAmount = stakingData.stakers(user); 
-        assertEq(stakedAmount, 1 ether);
-        
         vm.stopPrank();
     }
 }
