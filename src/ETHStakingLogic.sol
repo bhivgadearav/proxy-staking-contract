@@ -58,6 +58,7 @@ contract ETHStakingLogic {
             else {
                 StakeTokenContract(stakeToken).mint(msg.sender, amount);
             }
+            stakers[msg.sender] = 0;
         }
     }
 
