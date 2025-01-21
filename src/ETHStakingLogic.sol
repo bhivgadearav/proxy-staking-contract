@@ -66,5 +66,9 @@ contract ETHStakingLogic {
         require(redeemers[msg.sender] == 0, "You don't have any rewards to redeem.");
         return stakers[msg.sender];
     }
+
+    function stakedBalance() public view returns (uint256) {
+        return stakers[msg.sender];
+    }
 }
 

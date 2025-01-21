@@ -49,5 +49,9 @@ contract ERC20StakingLogic {
     }
 
     function redeemRewards() public {}
+
+    function stakedBalance() public view returns (uint256) {
+        return stakers[msg.sender];
+    }
 }
 
