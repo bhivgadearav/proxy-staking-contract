@@ -8,12 +8,12 @@ interface StakeTokenContract is IERC20 {
     function burn(address from, uint256 amount) external;
 }
 
-event ERC20TokenStaked (
+event TokenStaked (
     address indexed by,
     uint256 amount
 );
 
-event ERC20TokenUnstaked (
+event TokenUnstaked (
     address indexed by,
     uint256 amount
 );
@@ -21,39 +21,33 @@ event ERC20TokenUnstaked (
 contract ERC20StakingLogic {
     uint256 public totalStaked;
     mapping(address => uint256) public stakers;
-    mapping(address => uint256) public unstakers;
+    mapping(address => uint256) public redeemers;
+    address validToken;
     address stakeToken;
 
     function stake(IERC20 _tokenAddress, uint256 _amount) public {
+        require(_tokenAddress == validToken, "You can only stake valid tokens.");
+        require(_tokenAddress.allowance(msg.sender, address(this)) >= _amount, "You need to allow contract to spend your tokens in order to stake");
         require(_amount > 0, "Amount must be greater than 0.");
-        require(_tokenAddress.allowance(msg.sender, address(this)) >= _amount, "You need to allow contract to spend your stake tokens in order to unstake");
+        _tokenAddress.transferFrom(msg.sender, address(this), _amount);
         stakers[msg.sender] += _amount;
         totalStaked += _amount;
-        _tokenAddress.transferFrom(msg.sender, address(this), _amount);
-        if (StakeTokenContract(stakeToken).balanceOf(address(this)) >= _amount) {
-            StakeTokenContract(stakeToken).transfer(msg.sender, _amount);
-        } 
-        else {
-            StakeTokenContract(stakeToken).mint(msg.sender, _amount);
-        }
-        emit ERC20TokenStaked(msg.sender, _amount);
+        emit TokenStaked(msg.sender, _amount);
     }
 
-    function unstake(IERC20 _tokenAddress) public {
-        require(stakers[msg.sender] > 0, "You haven't staked any ETH.");
-        require(StakeTokenContract(stakeToken).allowance(msg.sender, address(this)) >= stakers[msg.sender], "You need to allow contract to spend your stake tokens in order to unstake");
-        if (unstakers[msg.sender] == 0) {
-            unstakers[msg.sender] = block.timestamp + 21 * 1 days;
-            emit ERC20TokenUnstaked(msg.sender, stakers[msg.sender]);
-        } else {
-            require(block.timestamp >= unstakers[msg.sender], "You need to wait longer before you can unstake");
-            uint256 amount = stakers[msg.sender];
-            stakers[msg.sender] = 0;
-            unstakers[msg.sender] = 0;
-            totalStaked -= amount;
-            StakeTokenContract(stakeToken).transferFrom(msg.sender, address(this), amount);
-            _tokenAddress.transfer(msg.sender, amount);
-        }
+    function unstake(IERC20 _tokenAddress, , uint256 _amount) public {
+        require(stakers[msg.sender] > 0, "You haven't staked any tokens.");
+        require(stakers[msg.sender] >= _amount, "You haven't staked enough tokens.");
+        stakers[msg.sender] -= _amount;
+        _tokenAddress.transfer(msg.sender, _amount);
+        emit TokenUnstaked(msg.sender, _amount);
     }
+
+    function getRewards() public view returns (uint256) {
+        require(redeemers[msg.sender] == 0, "You don't have any rewards to redeem.");
+        return stakers[msg.sender];
+    }
+
+    function redeemRewards() public {}
 }
 
