@@ -51,4 +51,53 @@ contract ETHStakingTest is Test {
 
         vm.stopPrank();
     }
+
+    function testGetRewards() public {
+        bool success;
+        bytes memory data;
+
+        vm.deal(user, 10 ether);
+        vm.startPrank(user);
+
+        // Stake ETH
+        (success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
+        assertTrue(success);
+
+        uint256 stakedAmount = stakingData.stakers(user);
+        assertEq(stakedAmount, 1 ether);
+
+        // Get rewards and verify return data
+        (success, data) = address(stakingData).call(abi.encodeWithSignature("getRewards()"));
+        assertTrue(success);
+        assertTrue(data.length == 32, "Return data should be 32 bytes (uint256)");
+
+        uint256 rewards = abi.decode(data, (uint256));
+        assertEq(rewards, 1 ether);
+
+        vm.stopPrank();
+    }
+
+    function testRedeemRewards() public {
+        vm.deal(user, 10 ether);
+        vm.startPrank(user);
+
+        (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
+        assertTrue(success);
+
+        uint256 stakedAmount = stakingData.stakers(user);
+        assertEq(stakedAmount, 1 ether);
+
+        (success, ) = address(stakingData).call(abi.encodeWithSignature("redeemRewards()"));
+        assertTrue(success);
+
+        vm.warp(block.timestamp + 22 days);
+
+        (success, ) = address(stakingData).call(abi.encodeWithSignature("redeemRewards()"));
+        assertTrue(success);
+
+        uint256 userTokenBalance = stakeToken.balanceOf(user);
+        assertEq(userTokenBalance, 1 ether);
+
+        vm.stopPrank();
+    }
 }
