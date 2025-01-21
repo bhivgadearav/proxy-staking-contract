@@ -18,57 +18,80 @@ event ETHUnstaked (
     uint256 amount
 );
 
-// problems - user is not able to stake again and then unstake after claiming rewards
-// logic is reliant on value redeemers mapping too much, restricting flexiibility
-
-// solution - make a struct to store the staker's data and then use a mapping to store the struct
-// then add tests for claimRewards, getRewards and redeemRewards
+struct StakeDetails {
+    uint256 amount;
+    uint256 lastUpdate;
+}
 
 contract ETHStakingLogic {
     uint256 public totalStaked;
-    mapping(address => uint256) public stakers;
-    mapping(address => uint256) public redeemers;
+    uint256 public dailyReward = 10;
+    uint256 public rewardMultiplierPerETH = 1;
+    mapping(address => StakeDetails) public stakers;
+    mapping (address => uint256) public rewards;
+    mapping(address => uint256) public rewardClaims;
     address stakeToken;
 
+    modifier onlyStaker {
+        require(stakers[msg.sender].lastUpdate > 0, "You are not a staker.");
+        _;
+    }
+
     function stake() payable public {
+        require(rewardClaims[msg.sender] == 0, "You have to wait before you can stake again.");
         require(msg.value > 0, "Amount must be greater than 0.");
-        stakers[msg.sender] += msg.value;
+        calculateAndSetRewards(msg.sender);
+        stakers[msg.sender].amount += msg.value;
+        stakers[msg.sender].lastUpdate = block.timestamp;
         totalStaked += msg.value;
         emit ETHStaked(msg.sender, msg.value);
     }
 
-    function unstake(uint256 _value) public {
-        require(stakers[msg.sender] >= _value, "You haven't staked enough ETH.");
-        stakers[msg.sender] -= _value;
-        payable(msg.sender).transfer(_value);
-        emit ETHUnstaked(msg.sender, stakers[msg.sender]);
+    function unstake(uint256 _amount) public onlyStaker {
+        require(stakers[msg.sender] >= _amount, "You haven't staked enough ETH.");
+        calculateAndSetRewards(msg.sender);
+        stakers[msg.sender].amount -= _amount;
+        stakers[msg.sender].lastUpdate = block.timestamp;
+        payable(msg.sender).transfer(_amount);
+        emit ETHUnstaked(msg.sender, _amount);
     }
 
-    function redeemRewards() public {
-        require(stakers[msg.sender] > 0, "You haven't staked any ETH.");
-        if (redeemers[msg.sender] == 0) {
-            redeemers[msg.sender] = block.timestamp + 21 * 1 days;
+    function redeemRewards() public onlyStaker {
+        if (rewardClaims[msg.sender] == 0) {
+            calculateAndSetRewards(msg.sender);
+            stakers[msg.sender].amount = 0;
+            stakers[msg.sender].lastUpdate = block.timestamp;
+            rewardClaims[msg.sender] = block.timestamp + 21 * 1 days;
         } 
         else {
-            require(block.timestamp >= redeemers[msg.sender], "You need to wait longer before you can unstake");
-            uint256 amount = stakers[msg.sender];
-            if (StakeTokenContract(stakeToken).balanceOf(address(this)) >= amount) {
-                StakeTokenContract(stakeToken).transfer(msg.sender, amount);
-            } 
-            else {
-                StakeTokenContract(stakeToken).mint(msg.sender, amount);
-            }
-            stakers[msg.sender] = 0;
+            require(block.timestamp >= rewardClaims[msg.sender], "You need to wait longer before you can redeem.");
+            uint256 amount = rewards[msg.sender];
+            sendTokens(msg.sender, amount);
+            rewards[msg.sender] = 0;
         }
     }
 
-    function getRewards() public view returns (uint256) {
-        require(redeemers[msg.sender] == 0, "You don't have any rewards to redeem.");
-        return stakers[msg.sender];
+    function sendTokens(address _to, address _amount) internal {
+        if (StakeTokenContract(stakeToken).balanceOf(address(this)) >= _amount) {
+            StakeTokenContract(stakeToken).transfer(_to, _amount);
+        } 
+        else {
+            StakeTokenContract(stakeToken).mint(_to, _amount);
+        }
     }
 
-    function stakedBalance() public view returns (uint256) {
-        return stakers[msg.sender];
+    function getRewards() public view onlyStaker returns (uint256) {
+        calculateAndSetRewards(msg.sender);
+        stakers[msg.sender].lastUpdate = block.timestamp;
+        return rewards[msg.sender];
+    }
+
+    function stakedBalance() public view onlyStaker returns (uint256) {
+        return stakers[msg.sender].amount;
+    }
+
+    function calculateAndSetRewards(address _user) internal {
+        rewards[_user] = (block.timestamp - stakers[_user].lastUpdate) * dailyReward * (stakers[_user].amount * rewardMultiplierPerETH)
     }
 }
 
