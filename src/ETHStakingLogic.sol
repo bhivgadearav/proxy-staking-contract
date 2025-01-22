@@ -23,6 +23,8 @@ struct StakeDetails {
     uint256 lastUpdate;
 }
 
+// see if this contract passes the tests he wrote in the solution
+
 contract ETHStakingLogic {
     uint256 public totalStaked;
     uint256 public dailyReward = 10;
@@ -48,7 +50,7 @@ contract ETHStakingLogic {
     }
 
     function unstake(uint256 _amount) public onlyStaker {
-        require(stakers[msg.sender] >= _amount, "You haven't staked enough ETH.");
+        require(stakers[msg.sender].amount >= _amount, "You haven't staked enough ETH.");
         calculateAndSetRewards(msg.sender);
         stakers[msg.sender].amount -= _amount;
         stakers[msg.sender].lastUpdate = block.timestamp;
@@ -71,7 +73,7 @@ contract ETHStakingLogic {
         }
     }
 
-    function sendTokens(address _to, address _amount) internal {
+    function sendTokens(address _to, uint256 _amount) internal {
         if (StakeTokenContract(stakeToken).balanceOf(address(this)) >= _amount) {
             StakeTokenContract(stakeToken).transfer(_to, _amount);
         } 
@@ -80,7 +82,7 @@ contract ETHStakingLogic {
         }
     }
 
-    function getRewards() public view onlyStaker returns (uint256) {
+    function getRewards() public onlyStaker returns (uint256) {
         calculateAndSetRewards(msg.sender);
         stakers[msg.sender].lastUpdate = block.timestamp;
         return rewards[msg.sender];
@@ -91,7 +93,8 @@ contract ETHStakingLogic {
     }
 
     function calculateAndSetRewards(address _user) internal {
-        rewards[_user] = (block.timestamp - stakers[_user].lastUpdate) * dailyReward * (stakers[_user].amount * rewardMultiplierPerETH)
+        // ask claude if this formula can calculate rewards for every second eth is staked
+        rewards[_user] = (block.timestamp - stakers[_user].lastUpdate) * dailyReward * (stakers[_user].amount * rewardMultiplierPerETH);
     }
 }
 
