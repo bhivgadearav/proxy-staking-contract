@@ -81,7 +81,6 @@ contract ETHStakingLogic {
     function getRewards() public onlyStaker returns (uint256) {
         if (rewardClaims[msg.sender] == 0) {
             calculateAndSetRewards(msg.sender);
-            stakers[msg.sender].lastUpdate = block.timestamp;
             return rewards[msg.sender];
         }
         else {
