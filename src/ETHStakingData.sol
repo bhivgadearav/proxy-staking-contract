@@ -3,10 +3,18 @@ pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol";
 
+struct StakeDetails {
+    uint256 amount;
+    uint256 lastUpdate;
+}
+
 contract ETHStakingData {
     uint256 public totalStaked;
-    mapping(address => uint256) public stakers;
-    mapping(address => uint256) public unstakers;
+    uint256 public dailyReward = 10;
+    uint256 public rewardMultiplierPerETH = 1;
+    mapping(address => StakeDetails) public stakers;
+    mapping (address => uint256) public rewards;
+    mapping(address => uint256) public rewardClaims;
     address stakeToken;
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "./ETHStakingData.sol";
 
 interface StakeTokenContract is IERC20 {
     function mint(address to, uint256 amount) external;
@@ -17,11 +18,6 @@ event ETHUnstaked (
     address indexed by,
     uint256 amount
 );
-
-struct StakeDetails {
-    uint256 amount;
-    uint256 lastUpdate;
-}
 
 // see if this contract passes the tests he wrote in the solution
 

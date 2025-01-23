@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
+import "../lib/forge-std/src/Test.sol";
 import "../src/ETHStakingData.sol";
 import "../src/ETHStakingLogic.sol";
 import "../src/StakeToken.sol";
@@ -27,8 +27,8 @@ contract ETHStakingTest is Test {
         (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
         assertTrue(success);
 
-        uint256 stakedAmount = stakingData.stakers(user);
-        assertEq(stakedAmount, 1 ether);
+        (uint256 amount, ) = stakingData.stakers(user);
+        assertEq(amount, 1 ether);
 
         vm.stopPrank();
     }
@@ -40,14 +40,14 @@ contract ETHStakingTest is Test {
         (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
         assertTrue(success);
 
-        uint256 stakedAmount = stakingData.stakers(user);
-        assertEq(stakedAmount, 1 ether);
+        (uint256 amount, ) = stakingData.stakers(user);
+        assertEq(amount, 1 ether);
 
         (success, ) = address(stakingData).call(abi.encodeWithSignature("unstake(uint256)", 1 ether));
         assertTrue(success);
 
-        stakedAmount = stakingData.stakers(user);
-        assertEq(stakedAmount, 0);
+        (amount, ) = stakingData.stakers(user);
+        assertEq(amount, 0);
 
         vm.stopPrank();
     }
@@ -63,8 +63,8 @@ contract ETHStakingTest is Test {
         (success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
         assertTrue(success);
 
-        uint256 stakedAmount = stakingData.stakers(user);
-        assertEq(stakedAmount, 1 ether);
+        (uint256 amount, ) = stakingData.stakers(user);
+        assertEq(amount, 1 ether);
 
         // Get rewards and verify return data
         (success, data) = address(stakingData).call(abi.encodeWithSignature("getRewards()"));
@@ -84,8 +84,8 @@ contract ETHStakingTest is Test {
         (bool success, ) = address(stakingData).call{value: 1 ether}(abi.encodeWithSignature("stake()"));
         assertTrue(success);
 
-        uint256 stakedAmount = stakingData.stakers(user);
-        assertEq(stakedAmount, 1 ether);
+        (uint256 amount, ) = stakingData.stakers(user);
+        assertEq(amount, 1 ether);
 
         (success, ) = address(stakingData).call(abi.encodeWithSignature("redeemRewards()"));
         assertTrue(success);
