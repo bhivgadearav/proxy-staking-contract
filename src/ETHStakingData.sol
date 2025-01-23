@@ -10,7 +10,7 @@ struct StakeDetails {
 
 contract ETHStakingData {
     uint256 public totalStaked;
-    uint256 public dailyReward = 10;
+    uint256 public dailyReward = 1;
     uint256 public rewardMultiplierPerETH = 1;
     mapping(address => StakeDetails) public stakers;
     mapping (address => uint256) public rewards;

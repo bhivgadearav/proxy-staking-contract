@@ -23,7 +23,7 @@ event ETHUnstaked (
 
 contract ETHStakingLogic {
     uint256 public totalStaked;
-    uint256 public dailyReward = 10;
+    uint256 public dailyReward = 1;
     uint256 public rewardMultiplierPerETH = 1;
     mapping(address => StakeDetails) public stakers;
     mapping (address => uint256) public rewards;
@@ -79,9 +79,14 @@ contract ETHStakingLogic {
     }
 
     function getRewards() public onlyStaker returns (uint256) {
-        calculateAndSetRewards(msg.sender);
-        stakers[msg.sender].lastUpdate = block.timestamp;
-        return rewards[msg.sender];
+        if (rewardClaims[msg.sender] == 0) {
+            calculateAndSetRewards(msg.sender);
+            stakers[msg.sender].lastUpdate = block.timestamp;
+            return rewards[msg.sender];
+        }
+        else {
+            return rewards[msg.sender];
+        }
     }
 
     function stakedBalance() public view onlyStaker returns (uint256) {
@@ -89,8 +94,8 @@ contract ETHStakingLogic {
     }
 
     function calculateAndSetRewards(address _user) internal {
-        // ask claude if this formula can calculate rewards for every second eth is staked
-        rewards[_user] = (block.timestamp - stakers[_user].lastUpdate) * dailyReward * (stakers[_user].amount * rewardMultiplierPerETH);
+        uint256 timeDiff = block.timestamp - stakers[_user].lastUpdate;
+        rewards[_user] = (timeDiff * dailyReward * stakers[_user].amount) / (1 days * 1 ether);
     }
 }
 

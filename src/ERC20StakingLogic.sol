@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "./ERC20StakingData.sol";
 
 interface StakeTokenContract is IERC20 {
     function mint(address to, uint256 amount) external;
@@ -18,16 +19,11 @@ event TokenUnstaked (
     uint256 amount
 );
 
-struct StakeDetails {
-    uint256 amount;
-    uint256 lastUpdate;
-}
-
 // see if this contract passes the tests he wrote in the solution for eth staking logic but modified for erc20 staking
 
 contract ERC20StakingLogic {
     uint256 public totalStaked;
-    uint256 public dailyReward = 10;
+    uint256 public dailyReward = 1;
     uint256 public rewardMultiplierPerETH = 1;
     mapping(address => StakeDetails) public stakers;
     mapping (address => uint256) public rewards;
@@ -79,8 +75,8 @@ contract ERC20StakingLogic {
     }
 
     function calculateAndSetRewards(address _user) internal {
-        // ask claude if this formula can calculate rewards for every second eth is staked
-        rewards[_user] = (block.timestamp - stakers[_user].lastUpdate) * dailyReward * (stakers[_user].amount * rewardMultiplierPerETH);
+        uint256 timeDiff = block.timestamp - stakers[_user].lastUpdate;
+        rewards[_user] = (timeDiff * dailyReward * stakers[_user].amount) / (1 days * 1 ether);
     }
 
     function sendTokens(address _to, uint256 _amount) internal {
