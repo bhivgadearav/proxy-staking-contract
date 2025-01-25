@@ -23,12 +23,29 @@ contract ERC20StakingData {
         setImplementation(_implementation);
     }
 
+    function setStakeToken(address _stakeToken) external {
+        stakeToken = _stakeToken;
+    }
+
+    function setValidToken(address _validToken) external {
+        validToken = _validToken;
+    }
+
     fallback() external payable {
-        (bool success, ) = getImplementation().delegatecall(msg.data);
-        if (!success) {
-            revert();
+        (bool success, bytes memory data) = getImplementation().delegatecall(msg.data);
+        require(success, "Fallback delegatecall failed");
+        
+        // Handle return data for getRewards
+        if (data.length > 0) {
+            assembly {
+                // Return the full returndatasize to ensure we capture the uint256
+                let returndata_size := returndatasize()
+                returndatacopy(0, 0, returndata_size)
+                return(0, returndata_size)
+            }
         }
     }
+
 
     receive() external payable {
         // Custom logic for receiving Ether can be added here
