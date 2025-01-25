@@ -40,7 +40,7 @@ contract ERC20StakingLogic {
         require(rewardClaims[msg.sender] == 0, "You have to wait before you can stake again.");
         require(_amount > 0, "Amount must be greater than 0.");
         require(address(_tokenAddress) == validToken, "You can only stake valid tokens.");
-        require(_tokenAddress.allowance(msg.sender, address(this)) >= _amount, "You need to allow contract to spend your tokens in order to stake");
+        require(_tokenAddress.allowance(msg.sender, address(this)) >= _amount, "You need to allow contract to spend amount of tokens you want to stake.");
         calculateAndSetRewards(msg.sender);
         _tokenAddress.transferFrom(msg.sender, address(this), _amount);
         stakers[msg.sender].amount += _amount;
@@ -49,13 +49,13 @@ contract ERC20StakingLogic {
         emit TokenStaked(msg.sender, _amount);
     }
 
-    function unstake(IERC20 _tokenAddress, uint256 _amount) public {
+    function unstake(uint256 _amount) public {
         require(_amount > 0, "Send a request to unstake more than 0.");
         require(stakers[msg.sender].amount >= _amount, "You haven't staked enough tokens.");
         calculateAndSetRewards(msg.sender);
         stakers[msg.sender].amount -= _amount;
         stakers[msg.sender].lastUpdate = block.timestamp;
-        _tokenAddress.transfer(msg.sender, _amount);
+        IERC20(validToken).transfer(msg.sender, _amount);
         emit TokenUnstaked(msg.sender, _amount);
     }
 
@@ -89,9 +89,13 @@ contract ERC20StakingLogic {
     }
 
     function getRewards() public onlyStaker returns (uint256) {
-        calculateAndSetRewards(msg.sender);
-        stakers[msg.sender].lastUpdate = block.timestamp;
-        return rewards[msg.sender];
+        if (rewardClaims[msg.sender] == 0) {
+            calculateAndSetRewards(msg.sender);
+            return rewards[msg.sender];
+        }
+        else {
+            return rewards[msg.sender];
+        }
     }
 
     function stakedBalance() public view onlyStaker returns (uint256) {
