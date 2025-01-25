@@ -36,13 +36,13 @@ contract ERC20StakingLogic {
         _;
     }
 
-    function stake(IERC20 _tokenAddress, uint256 _amount) public {
+    function stake(address _tokenAddress, uint256 _amount) public {
         require(rewardClaims[msg.sender] == 0, "You have to wait before you can stake again.");
         require(_amount > 0, "Amount must be greater than 0.");
-        require(address(_tokenAddress) == validToken, "You can only stake valid tokens.");
-        require(_tokenAddress.allowance(msg.sender, address(this)) >= _amount, "You need to allow contract to spend amount of tokens you want to stake.");
+        require(_tokenAddress == validToken, "You can only stake valid tokens.");
+        require(IERC20(_tokenAddress).allowance(msg.sender, address(this)) >= _amount, "You need to allow contract to spend amount of tokens you want to stake.");
         calculateAndSetRewards(msg.sender);
-        _tokenAddress.transferFrom(msg.sender, address(this), _amount);
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
         stakers[msg.sender].amount += _amount;
         stakers[msg.sender].lastUpdate = block.timestamp;
         totalStaked += _amount;
