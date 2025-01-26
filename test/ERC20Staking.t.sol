@@ -69,4 +69,34 @@ contract ETHStakingTest is Test {
 
         vm.stopPrank();
     }
+
+    function testGetRewards() public {
+        bytes memory data;
+        vm.deal(user, 10 ether);
+        vm.startPrank(user);
+
+        customTokenContract = new CustomToken();
+        stakingDataContract.setValidToken(address(customTokenContract));
+
+        customTokenContract.mint(address(user), 10**19);
+
+        customTokenContract.approve(address(stakingDataContract), 10**19);
+
+        (bool success, ) = address(stakingDataContract).call(abi.encodeWithSignature("stake(address,uint256)", address(customTokenContract), 10**19));
+        assertTrue(success);
+
+        (uint256 amount, ) = stakingDataContract.stakers(user);
+        assertEq(amount, 10**19);
+
+        vm.warp(block.timestamp + 1 days);
+
+        (success, data) = address(stakingDataContract).call(abi.encodeWithSignature("getRewards()"));
+        assertTrue(success);
+        assertTrue(data.length == 32, "Return data should be 32 bytes (uint256)");
+
+        uint256 rewards = abi.decode(data, (uint256));
+        assertEq(rewards, 10);
+
+        vm.stopPrank();
+    }
 }
