@@ -1,4 +1,5 @@
 # Proxy Staking Contracts
+**Note** - Only the ETH staking contracts implementation transparent proxy pattern using openzeppelin contracts, rest are written completely by me.
 
 This project contains three upgradable staking contracts:
 
