@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "./ETHStakingData.sol";
+import "../lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 
 interface StakeTokenContract is IERC20 {
     function mint(address to, uint256 amount) external;
@@ -19,9 +20,7 @@ event ETHUnstaked (
     uint256 amount
 );
 
-// see if this contract passes the tests he wrote in the solution
-
-contract ETHStakingLogic {
+contract ETHStakingLogic is Initializable {
     uint256 public totalStaked;
     uint256 public dailyReward = 1;
     uint256 public rewardMultiplierPerETH = 1;
@@ -33,6 +32,10 @@ contract ETHStakingLogic {
     modifier onlyStaker {
         require(stakers[msg.sender].lastUpdate > 0, "You are not a staker.");
         _;
+    }
+
+    constructor() {
+        _disableInitializers();
     }
 
     function stake() payable public {

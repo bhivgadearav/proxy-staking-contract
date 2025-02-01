@@ -15,7 +15,7 @@ contract ETHStakingTest is Test {
 
     function setUp() public {
         stakingLogic = new ETHStakingLogic();
-        stakingData = new ETHStakingData(address(stakingLogic));
+        stakingData = new ETHStakingData(address(stakingLogic), address(user), "");
         stakeToken = new StakeToken(address(user), address(stakingData));
         stakingData.setStakeToken(address(stakeToken));
     }
